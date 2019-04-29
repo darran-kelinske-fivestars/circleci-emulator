@@ -37,18 +37,12 @@ reference:
       name: Download Android Dependencies
       command: ./gradlew androidDependencies
 
-  validate_running: &validate_running
-    run:
-      name: Validate running
-      command: source ci/scripts/validate_running.sh
-
 jobs:
   # unit test
   build:
     <<: *android_config
     steps:
       - checkout
-      - *validate_running
       - *restore_gradle_cache
       - *android_dependencies
       - *save_gradle_cache
