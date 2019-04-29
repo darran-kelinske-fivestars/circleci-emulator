@@ -9,7 +9,7 @@ reference:
   android_config: &android_config
     working_directory: *workspace
     docker:
-      - image: circleci/android:api-28-node8-alpha
+      - image: circleci/android@sha256:5cdc8626cc6f13efe5ed982cdcdb432b0472f8740fed8743a6461e025ad6cdfc
     environment:
       TERM: dumb
       _JAVA_OPTIONS: "-Xmx2048m -XX:+UnlockExperimentalVMOptions -XX:+UseCGroupMemoryLimitForHeap"
@@ -38,29 +38,34 @@ reference:
       command: ./gradlew androidDependencies
 
 jobs:
-  # unit test
   build:
-    <<: *android_config
+    working_directory: ~/code
+    docker:
+      # Android the primary container
+      - image: circleci/android@sha256:5cdc8626cc6f13efe5ed982cdcdb432b0472f8740fed8743a6461e025ad6cdfc
+    environment:
+      JVM_OPTS: -Xmx3200m
     steps:
       - checkout
-      - *restore_gradle_cache
-      - *android_dependencies
-      - *save_gradle_cache
       - run:
-          name: Setup emulator
-          command: echo yes | sdkmanager "system-images;android-24;default;armeabi-v7a" && echo "no" | avdmanager create avd -n test -k "system-images;android-24;default;armeabi-v7a"
+          name: Accept licenses
+          command: yes | sdkmanager --licenses || true
+      - run:
+          name: Setup Android emulator
+          command: |
+            sdkmanager "system-images;android-24;default;armeabi-v7a" && echo "no" | avdmanager create avd -n test -k "system-images;android-24;default;armeabi-v7a"
       - run:
           name: Launch emulator
           command: export LD_LIBRARY_PATH=${ANDROID_HOME}/emulator/lib64:${ANDROID_HOME}/emulator/lib64/qt/lib && emulator64-arm -avd test -noaudio -no-boot-anim -no-window -accel auto -verbose
           background: true
       - run:
-          name: Wait emulator
-          command: |
-            # wait for it to have booted
-            circle-android wait-for-boot
-            # unlock the emulator screen
+          name: waiting for system to boot
+          command: circle-android wait-for-boot
             sleep 30
+            wget --quiet --output-document=android-wait-for-emulator https://raw.githubusercontent.com/travis-ci/travis-cookbooks/master/community-cookbooks/android-sdk/files/default/android-wait-for-emulator
+            chmod +x android-wait-for-emulator
+            ./android-wait-for-emulator
             adb shell input keyevent 82
       - run:
-          name: Run test
-          command: ./gradlew test
+          name: Run Tests
+          command: ./gradlew connectedAndroidTest
