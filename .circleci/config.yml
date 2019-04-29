@@ -42,10 +42,24 @@ jobs:
   build:
     <<: *android_config
     steps:
+      - android list targets
+      - echo no | android create avd -n emulatorwithgoogleapi22 -t 12 --tag google_apis
+      - echo 'vm.heapSize=512' >> ~/.android/avd/emulatorwithgoogleapi22.ini
+      - echo 'hw.ramSize=1024' >> ~/.android/avd/emulatorwithgoogleapi22.ini
+      - cat ~/.android/avd/emulatorwithgoogleapi22.ini
+      - emulator -avd emulatorwithgoogleapi24 -no-audio -no-window :
+          background: true
+          parallel: true
+      - circle-android wait-for-boot
+      - adb shell input keyevent 82
+      - adb shell svc power stayon true
+      - adb shell settings put global window_animation_scale 0
+      - adb shell settings put global transition_animation_scale 0
+      - adb shell settings put global animator_duration_scale 0
       - checkout
       - *restore_gradle_cache
       - *android_dependencies
       - *save_gradle_cache
       - run:
           name: Run test
-          command: ./gradlew test
+          command: ./gradlew assembleDebug connectedAndroidTest
