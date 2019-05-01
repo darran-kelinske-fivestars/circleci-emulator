@@ -44,47 +44,47 @@ reference:
       command: ./gradlew androidDependencies
 
 jobs:
+#  build:
+#    working_directory: ~/code
+#    docker:
+#      # Android the primary container
+#      - image: circleci/android@sha256:5cdc8626cc6f13efe5ed982cdcdb432b0472f8740fed8743a6461e025ad6cdfc
+#    environment:
+#      JVM_OPTS: -Xmx3200m
+#    steps:
+#      - checkout
+#      - run:
+#          name: IP Addres
+#          command: ifconfig
+#      - run:
+#          name: Download and start X
+#          command: |
+#            sudo apt-get install -y x11vnc
+#            x11vnc -forever -nopw
+#          background: true
+#      - run:
+#          name: Accept licenses
+#          command: yes | sdkmanager --licenses || true
+#      - run:
+#          name: Setup Android emulator
+#          command: |
+#            sdkmanager "system-images;android-24;default;armeabi-v7a" && echo "no" | avdmanager create avd -n test -k "system-images;android-24;default;armeabi-v7a"
+#      - run:
+#          name: Launch emulator
+#          command: export LD_LIBRARY_PATH=${ANDROID_HOME}/emulator/lib64:${ANDROID_HOME}/emulator/lib64/qt/lib && emulator64-arm -avd test -noaudio -no-boot-anim -no-window -accel auto -verbose
+#          background: true
+#      - run:
+#          name: waiting for system to boot
+#          command: circle-android wait-for-boot
+#            sleep 30
+#            wget --quiet --output-document=android-wait-for-emulator https://raw.githubusercontent.com/travis-ci/travis-cookbooks/master/community-cookbooks/android-sdk/files/default/android-wait-for-emulator
+#            chmod +x android-wait-for-emulator
+#            ./android-wait-for-emulator
+#            adb shell input keyevent 82
+#      - run:
+#          name: Run Tests
+#          command: ./gradlew connectedAndroidTest
   build:
-    working_directory: ~/code
-    docker:
-      # Android the primary container
-      - image: circleci/android@sha256:5cdc8626cc6f13efe5ed982cdcdb432b0472f8740fed8743a6461e025ad6cdfc
-    environment:
-      JVM_OPTS: -Xmx3200m
-    steps:
-      - checkout
-      - run:
-          name: IP Addres
-          command: ifconfig
-      - run:
-          name: Download and start X
-          command: |
-            sudo apt-get install -y x11vnc
-            x11vnc -forever -nopw
-          background: true
-      - run:
-          name: Accept licenses
-          command: yes | sdkmanager --licenses || true
-      - run:
-          name: Setup Android emulator
-          command: |
-            sdkmanager "system-images;android-24;default;armeabi-v7a" && echo "no" | avdmanager create avd -n test -k "system-images;android-24;default;armeabi-v7a"
-      - run:
-          name: Launch emulator
-          command: export LD_LIBRARY_PATH=${ANDROID_HOME}/emulator/lib64:${ANDROID_HOME}/emulator/lib64/qt/lib && emulator64-arm -avd test -noaudio -no-boot-anim -no-window -accel auto -verbose
-          background: true
-      - run:
-          name: waiting for system to boot
-          command: circle-android wait-for-boot
-            sleep 30
-            wget --quiet --output-document=android-wait-for-emulator https://raw.githubusercontent.com/travis-ci/travis-cookbooks/master/community-cookbooks/android-sdk/files/default/android-wait-for-emulator
-            chmod +x android-wait-for-emulator
-            ./android-wait-for-emulator
-            adb shell input keyevent 82
-      - run:
-          name: Run Tests
-          command: ./gradlew connectedAndroidTest
-  ui_test:
     <<: *android_config
     steps:
       - checkout
