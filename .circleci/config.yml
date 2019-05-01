@@ -28,7 +28,7 @@ reference:
   download_android_dependencies: &download_android_dependencies
     run:
       name: Download Android Dependencies
-      command: ./gradlew androidDependencie
+      command: ./gradlew androidDependencies
 
 jobs:
 #  build:
