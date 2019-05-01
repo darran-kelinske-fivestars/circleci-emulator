@@ -98,7 +98,7 @@ jobs:
       - run: avdmanager create avd -n Pixel_2_API_26 -k "system-images;android-25;google_apis;x86" -g google_apis -d "Nexus 5"
       - run:
           name: Run emulator in background
-          command: /usr/local/share/android-sdk/tools/emulator @Pixel_2_API_26 -skin 1080x2066 -memory 2048 -noaudio -gpu swiftshader
+          command: /usr/local/share/android-sdk/tools/emulator @Pixel_2_API_26 -skin 1080x2066 -memory 2048 -noaudio -gpu guest
           background: true
       - run:
           name: Run Tests
