@@ -104,7 +104,6 @@ jobs:
           name: waiting for system to boot
           command: |
             sleep 30
-            adb shell input keyevent 82
       - run:
           name: Run Tests
           command: ./gradlew app:connectedAndroidTest
