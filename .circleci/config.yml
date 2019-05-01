@@ -3,7 +3,7 @@ reference:
 
   ## Workspaces
   workspace: &workspace
-    ~/code
+               ~/code
 
   ## Docker image configurations
   android_config: &android_config
@@ -17,7 +17,7 @@ reference:
 
   ## Cache
   gradle_key: &gradle_key
-    jars-v1-{{ checksum "gradle/wrapper/gradle-wrapper.properties" }}-{{ checksum "build.gradle" }}-{{ checksum "app/build.gradle" }}
+                jars-v1-{{ checksum "gradle/wrapper/gradle-wrapper.properties" }}-{{ checksum "build.gradle" }}-{{ checksum "app/build.gradle" }}
 
   restore_gradle_cache: &restore_gradle_cache
     restore_cache:
@@ -37,6 +37,12 @@ reference:
       name: Download Android Dependencies
       command: ./gradlew androidDependencies
 
+      ## Dependency Downloads
+  download_android_dependencies: &download_android_dependencies
+    run:
+      name: Download Android Dependencies
+      command: ./gradlew androidDependencies
+
 jobs:
   build:
     working_directory: ~/code
@@ -47,6 +53,15 @@ jobs:
       JVM_OPTS: -Xmx3200m
     steps:
       - checkout
+      - run:
+          name: IP Addres
+          command: ifconfig
+      - run:
+          name: Download and start X
+          command: |
+            sudo apt-get install -y x11vnc
+            x11vnc -forever -nopw
+          background: true
       - run:
           name: Accept licenses
           command: yes | sdkmanager --licenses || true
@@ -69,3 +84,35 @@ jobs:
       - run:
           name: Run Tests
           command: ./gradlew connectedAndroidTest
+  ui_test:
+    <<: *android_config
+    steps:
+      - checkout
+      - run:
+          name: Setup environment variables
+          command: |
+            echo 'export PATH="$PATH:/usr/local/opt/node@8/bin:${HOME}/.yarn/bin:${HOME}/${CIRCLE_PROJECT_REPONAME}/node_modules/.bin:/usr/local/share/android-sdk/tools/bin"' >> $BASH_ENV
+            echo 'export ANDROID_HOME="/usr/local/share/android-sdk"' >> $BASH_ENV
+            echo 'export ANDROID_SDK_HOME="/usr/local/share/android-sdk"' >> $BASH_ENV
+            echo 'export ANDROID_SDK_ROOT="/usr/local/share/android-sdk"' >> $BASH_ENV
+            echo 'export QEMU_AUDIO_DRV=none' >> $BASH_ENV
+            echo 'export JAVA_HOME=/Library/Java/Home' >> $BASH_ENV
+      - run:
+          name: Install Android sdk
+          command: |
+            HOMEBREW_NO_AUTO_UPDATE=1 brew tap homebrew/cask
+            HOMEBREW_NO_AUTO_UPDATE=1 brew cask install android-sdk
+      - run:
+          name: Install emulator dependencies
+          command: (yes | sdkmanager "platform-tools" "platforms;android-26" "extras;intel;Hardware_Accelerated_Execution_Manager" "build-tools;26.0.0" "system-images;android-26;google_apis;x86" "emulator" --verbose) || true
+      - *restore_gradle_cache
+      - *download_android_dependencies
+      - *save_gradle_cache
+      - run: avdmanager create avd -n Pixel_2_API_26 -k "system-images;android-26;google_apis;x86" -g google_apis -d "Nexus 5"
+      - run:
+          name: Run emulator in background
+          command: /usr/local/share/android-sdk/tools/emulator @Pixel_2_API_26 -skin 1080x2066 -memory 2048 -noaudio
+          background: true
+      - run:
+          name: Run Tests
+          command: ./gradlew app:connectedAndroidTest
