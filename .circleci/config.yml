@@ -1,47 +1,34 @@
 version: 2
 reference:
-
-  ## Workspaces
+  ## Constants
+  gradle_cache_path: &gradle_cache_path
+                       gradle_cache-{{ checksum "build.gradle" }}-{{ checksum  "app/build.gradle" }}
   workspace: &workspace
-               ~/code
-
-  ## Docker image configurations
+               ~/src
+  ## Configurations
   android_config: &android_config
     working_directory: *workspace
-    docker:
-      - image: circleci/android@sha256:5cdc8626cc6f13efe5ed982cdcdb432b0472f8740fed8743a6461e025ad6cdfc
+    macos:
+      xcode: "9.4.0"
+    shell: /bin/bash --login -eo pipefail
     environment:
       TERM: dumb
-      _JAVA_OPTIONS: "-Xmx2048m -XX:+UnlockExperimentalVMOptions -XX:+UseCGroupMemoryLimitForHeap"
-      GRADLE_OPTS: '-Dorg.gradle.jvmargs="-Xmx2048m"'
-
+      JVM_OPTS: -Xmx3200m
   ## Cache
-  gradle_key: &gradle_key
-                jars-v1-{{ checksum "gradle/wrapper/gradle-wrapper.properties" }}-{{ checksum "build.gradle" }}-{{ checksum "app/build.gradle" }}
-
   restore_gradle_cache: &restore_gradle_cache
     restore_cache:
-      key: *gradle_key
-
+      key: *gradle_cache_path
   save_gradle_cache: &save_gradle_cache
     save_cache:
-      key: *gradle_key
+      key: *gradle_cache_path
       paths:
         - ~/.gradle
-        - ~/.m2
 
-  ## Dependencies
-
-  android_dependencies: &android_dependencies
-    run:
-      name: Download Android Dependencies
-      command: ./gradlew androidDependencies
-
-      ## Dependency Downloads
+  ## Dependency Downloads
   download_android_dependencies: &download_android_dependencies
     run:
       name: Download Android Dependencies
-      command: ./gradlew androidDependencies
+      command: ./gradlew androidDependencie
 
 jobs:
 #  build:
